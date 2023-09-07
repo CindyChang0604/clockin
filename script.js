@@ -228,7 +228,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log("WFH原因:", WFHreasonValue);
 
 
-    fetch('http://127.0.0.1:5001/submit_attendance', {
+    fetch('https://clockin-backend.zeabur.app/', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json'
