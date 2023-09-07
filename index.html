@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-Hans-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>賦能港員工出缺勤打卡</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      a
+      href="https://luckertw.com/wp-content/uploads/2023/08/job-e1692091303671.png"
+    />
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://apis.google.com/js/api.js"></script>
+
+
+    <style>
+      /* 預設情況下隱藏手機版的文字 */
+      .mobile-only {
+        display: none;
+      }
+
+      @media (max-width: 767px) {
+        /* 隱藏桌面版的文字 */
+        .title {
+          font-size: 28px
+        }
+        .desktop-only {
+          display: none;
+        }
+        /* 顯示手機版的文字 */
+        .mobile-only {
+          display: block;
+          font-size: 16px;
+          margin-top: 10px;
+        }
+
+        .overlay {
+          padding-left: 30px !important;
+          padding-top: 40px !important;
+        }
+
+        /* 螢幕寬度小於 768px（手機版）時，將選項排列為一列三個 */
+        .button-group {
+          flex-direction: row;
+          flex-wrap: wrap;
+        }
+
+        .button {
+          width: calc(33.33% - 12px); /* 三分之一寬度，減去間距 */
+          margin-right: 5px; /* 調整選項間的間距 */
+          margin-bottom: 5px;
+        }
+        .datetimepicker {
+          display: flex;
+          align-items: center; /* 垂直置中 */
+        }
+        .toast {
+          position: fixed;
+          top: 30px;
+          left: 50%;
+          min-width: 200px; /* 調整這個值以適應手機螢幕 */
+          margin-left: -100px; /* 這個值也需要相應的調整 */
+          transform: translateX(-5%);
+        }
+        #WFHreason {
+          width: 100%; /* 調整為適合手機屏幕的寬度 */
+          box-sizing: border-box; /* 保持內部填充和邊界在寬度內計算 */
+          font-size:14px
+        }
+        
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+      }
+
+      #header {
+        position: relative;
+        width: 100%;
+        height: 300px;
+        background-image: url("https://images.unsplash.com/photo-1606857521015-7f9fcf423740?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2940&q=80");
+        background-size: cover;
+        background-position: center 85%;
+      }
+
+      .overlay {
+        bottom: 0; /* 將 top 調整為 bottom */
+        left: 0;
+        width: 100% - 50px;
+        height: 250px; /* 調整高度 */
+        background-color: rgba(0, 0, 0, 0.5); /* 調整遮罩的透明度和顏色 */
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;  /* 從 center 改為 flex-start */
+        justify-content: flex-start;  /* 從 center 改為 flex-start */
+        padding-left: 100px;
+        padding-top: 50px;
+        color: white;
+        font-size: 28px; /* 調整字體大小 */
+        text-align: left;  /* 從 center 改為 left */
+      }
+
+      .overlay div:nth-child(2) {
+        font-size: 14px; /* 調整字體大小 */
+        margin-top: 8px;
+      }
+
+      #container {
+        position: relative;
+        top: -150px;
+        width: 80%;
+        margin: 20px auto;
+        background-color: #fff;
+        padding: 5px 20px 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      label {
+        font-weight: bold;
+        margin-bottom: 10px; /* 調整 label 底部的間距 */
+      }
+
+      .label-container {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .button-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+
+      .button {
+        padding: 5px 14px;
+        font-size: 16px;
+        background-color: #ffffff;
+        color: #999999;
+        border: 2px solid #cccccc;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+      }
+
+      .button:hover {
+        background-color: #ffffff;
+        color: #007bff;
+        border-color: #007bff;
+      }
+
+      .button.selected {
+        background-color: #007bff;
+        color: #ffffff;
+        border-color: #0056b3;
+      }
+
+      .button.selected:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+      }
+
+      button[type="submit"] {
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      .toast {
+        position: fixed;
+        top: 30px;
+        left: 50%;
+        min-width: 250px; /* Set a default minimum width */
+        margin-left: -125px; /* Divide value of min-width by 2 */
+        background-color: #0d6efd;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 5px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        z-index: 1;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .toast.show {
+        opacity: 1;
+        -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        animation: fadein 0.5s, fadeout 0.5s 2.5s;
+      }
+
+      /* Animations to fade the snackbar in and out */
+      @-webkit-keyframes fadein {
+        from {
+          top: 0;
+          opacity: 0;
+        }
+        to {
+          top: 30px;
+          opacity: 1;
+        }
+      }
+
+      @keyframes fadein {
+        from {
+          top: 0;
+          opacity: 0;
+        }
+        to {
+          top: 30px;
+          opacity: 1;
+        }
+      }
+
+      @-webkit-keyframes fadeout {
+        from {
+          top: 30px;
+          opacity: 1;
+        }
+        to {
+          top: 0;
+          opacity: 0;
+        }
+      }
+
+      @keyframes fadeout {
+        from {
+          top: 30px;
+          opacity: 1;
+        }
+        to {
+          top: 0;
+          opacity: 0;
+        }
+      }
+
+      label {
+        font-weight: normal;
+      }
+
+      /* 讓滑鼠懸停在選項時顯示手指圖示 */
+      label:hover {
+        cursor: pointer;
+      }
+      .radio-option {
+    display: block;
+    margin-bottom: 10px; 
+      }
+
+      .workOption {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+      }
+
+      .workOption:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0,123,255,0.5);
+      }
+      
+      #dateTimePicker1,
+      #dateTimePicker2 {
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 8px ;
+        font-size: 14px;
+        width: 100px;
+      }
+    </style>
+  </head>
+  
+  <div id="toast" class="toast">
+    <i class="fas fa-info-circle"></i>&nbsp&nbsp
+    <!-- Font Awesome 圖示 -->
+    <span class="toast-message"></span>
+    <!-- 顯示訊息的區域 -->
+  </div>
+
+  <body>
+    <div id="header">
+      <div class="overlay">
+          <div class="title">賦能港員工出缺勤打卡</div>
+          <div class="desktop-only">請於每日上下班前或請假時填寫，以便紀錄出缺勤！</div>
+          <div class="mobile-only">請於每日上下班前或請假時填寫，<br>以便紀錄出缺勤！</div>
+      </div>
+    </div>
+  
+    <div id="container">
+    
+
+      <form id="attendanceForm">
+        <p><span style="color: red">*</span><strong> 員工姓名 </strong></p>
+        <div style="margin-bottom: 10px" ></div>
+        <div class="button-group" id="employeeName">
+          <button
+            type="button"
+            class="button"
+            data-employee="Tom"
+            onclick="toggleEmployee('Tom')"
+          >
+            Tom
+          </button>
+          <button
+            type="button"
+            class="button"
+            data-employee="Cindy"
+            onclick="toggleEmployee('Cindy')"
+          >
+            Cindy
+          </button>
+          <button
+            type="button"
+            class="button"
+            data-employee="Jack"
+            onclick="toggleEmployee('Jack')"
+          >
+            Jack
+          </button>
+          <button
+            type="button"
+            class="button"
+            data-employee="Nicole"
+            onclick="toggleEmployee('Nicole')"
+          >
+            Nicole
+          </button>
+          <button
+            type="button"
+            class="button"
+            data-employee="Claire"
+            onclick="toggleEmployee('Claire')"
+          >
+            Claire
+          </button>
+          <button
+            type="button"
+            class="button"
+            data-employee="Jennifer"
+            onclick="toggleEmployee('Jennifer')"
+          >
+            Jennifer
+          </button>
+          <button
+            type="button"
+            class="button"
+            data-employee="Sally"
+            onclick="toggleEmployee('Sally')"
+          >
+            Sally
+          </button>
+          <button
+            type="button"
+            class="button"
+            data-employee="Cynthia"
+            onclick="toggleEmployee('Cynthia')"
+          >
+            Cynthia
+          </button>
+          <button
+            type="button"
+            class="button"
+            data-employee="Coco"
+            onclick="toggleEmployee('Coco')"
+          >
+            Coco
+          </button>
+          <!-- 依此類推，添加更多員工按鈕 -->
+        </div>
+
+        <div class="label-container">
+          <p><span style="color: red">*</span><strong> 出缺勤狀況 </strong></p>
+          <div class="radio-option">
+            <input type="radio" id="attendanceStatusWork" name="attendanceStatus" value="上班" required>
+            <label for="attendanceStatusWork">上班</label><br>
+          </div>
+        
+          <div class="radio-option">
+            <input type="radio" id="attendanceStatusOff" name="attendanceStatus" value="下班" required>
+            <label for="attendanceStatusOff">下班</label><br>
+          </div>
+        
+          <div class="radio-option">
+            <input type="radio" id="attendanceStatusField" name="attendanceStatus" value="上班外勤" required>
+            <label for="attendanceStatusField">上班外勤</label><br>
+          </div>
+        
+          <div class="radio-option">
+            <input type="radio" id="attendanceStatusLeave" name="attendanceStatus" value="請假" required>
+            <label for="attendanceStatusLeave">請假</label><br>
+         </div>
+        
+          <div class="radio-option">
+            <input type="radio" id="attendanceStatusWFH" name="attendanceStatus" value="WFH" required>
+            <label for="attendanceStatusWFH">WFH</label><br>
+          </div>
+        </div>
+        
+        <div class="field-section" id="fieldSection">
+            <p>
+              <span style="color: red">*</span><strong> 外勤時間： </strong>
+            </p>
+            <input type="time" id="StartTime" name="StartTime" required />
+            ～
+            <input type="time" id="EndTime" name="EndTime" required />
+        </div>
+        <div class="leave-section" id="leaveSection">
+          <p>
+            <span style="color: red">*</span><strong> 假別 </strong>
+          </p>
+            <select class="workOption" select id="workOption" >
+              <option value="" disabled selected>請選擇假別</option>  
+              <option value="特休">特休</option>
+              <option value="補修">補修</option>
+              <option value="病假">病假</option>
+              <option value="生理假">生理假</option>
+              <option value="公假">公假</option>
+              <option value="喪假">喪假</option>
+              <option value="事假">事假</option>
+              <option value="婚假">婚假</option>
+              <option value="產假">產假</option>
+            </select>
+            <p>
+              <span style="color: red">*</span><strong> 請假時間： </strong>
+            </p>
+              <div class="datetimepicker">
+              <input type="text" id="dateTimePicker1" placeholder="選擇起始時間" >&nbsp～&nbsp
+              <input type="text" id="dateTimePicker2" placeholder="選擇結束時間" > 
+              </div>
+        </div>
+        <div class="WFH-section" id="WFHSection">
+          <p>
+            <span style="color: red">*</span><strong> WFH原因 </strong>
+          </p>
+          <textarea id="WFHreason" name="answer" rows="4" cols="50" placeholder="在此輸入你的原因..." ></textarea>
+        </div>
+        <div style="margin-top: 5px">&nbsp;</div>
+        <!-- 调整外勤时间和提交按钮之间的空间 -->
+        <button type="submit">提交打卡</button>
+      </form>
+    </div>
+
+    <script src="script.js">
+    </script>
+  </body>
+</html>
