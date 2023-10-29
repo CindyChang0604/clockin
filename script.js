@@ -17,8 +17,17 @@ const buttons = document.querySelectorAll(".button");
         setTimeout(() => {
           toastElement.classList.remove("show");
           toastMessage.textContent = "";
+          // 使用 reset 方法重置整個表單
+          const form = document.getElementById("attendanceForm");
+          form.reset();
+
+          // 明確設置所有按鈕元素為未選取
+          const buttons = document.querySelectorAll("button");
+          buttons.forEach(button => {
+            button.classList.remove("selected"); // 假設 "selected" 是選取狀態的 CSS 類
+          });
         }, 3000);
-      }
+        }
 
       function closeToast() {
         const toastElement = document.getElementById("toast");
@@ -228,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log("WFH原因:", WFHreasonValue);
 
 
-    fetch('https://test-clockin-backend.zeabur.app/submit_attendance ', {
+    fetch('https://clockin-system-backend.zeabur.app/submit_attendance ', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json'
@@ -250,8 +259,8 @@ document.addEventListener('DOMContentLoaded', function() {
           
         }
         // 刷新網頁
-        setTimeout(function() {
-          location.reload();
-        }, 1000);
+        //setTimeout(function() {
+          //location.reload();
+        //}, 1000);
 });
 });
